@@ -115,6 +115,18 @@ docker compose watch
 
 起動後、`http://localhost:8000/docs` でSwagger UIを確認できます。
 
+## バックエンドのテスト
+
+```bash
+# ローカル開発中のテスト実行
+make test-backend
+
+# または、Dockerコンテナ内で直接テストを実行することも可能です。
+make docker-build
+make docker-up
+docker compose exec backend bash scripts/tests-start.sh -x
+```
+
 ## ⚙️ 環境変数
 
 `.env`ファイルを作成し、以下の変数を設定してください。
