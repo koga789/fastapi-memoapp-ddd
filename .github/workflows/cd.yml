@@ -1,0 +1,36 @@
+name: CD
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    cd:
+        name: cd
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            packages: write
+        steps:
+            # 1. コードの取得
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            # 2. GitHub Packages (ghcr.io) への認証
+            - name: Login to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            # 3. Backend のビルドとプッシュ
+            - name: Build and push Backend
+              uses: docker/build-push-action@v6
+              with:
+                  context: ./backend
+                  file: ./backend/Dockerfile
+                  target: production # compose.yml の指定に合わせる
+                  push: true
+                  tags: ghcr.io/${{ github.repository }}/backend:latest

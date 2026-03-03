@@ -1,0 +1,38 @@
+name: Test Docker Compose
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        types:
+            - opened
+            - synchronize
+
+jobs:
+    test-docker-compose:
+        runs-on: ubuntu-latest
+        steps:
+            # 1. コードの取得
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            # 2. Docker イメージのビルド
+            - name: Build Docker images
+              run: make docker-build
+
+            # 3. 既存環境のクリーンアップ
+            - name: Clean up previous containers
+              run: make docker-down
+
+            # 4. サービスの起動
+            - name: Start services
+              run: docker compose up -d --wait backend adminer
+
+            # 5. バックエンドの疎通確認
+            - name: Test backend health check
+              run: curl http://localhost:8000/api/v1/health
+
+            # 6. サービスの停止
+            - name: Stop services
+              run: make docker-down

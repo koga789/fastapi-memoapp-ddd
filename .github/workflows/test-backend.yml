@@ -1,0 +1,73 @@
+name: Test Backend
+
+on:
+    push:
+        branches:
+            - main
+    pull_request:
+        types:
+            - opened
+            - synchronize
+
+jobs:
+    test-backend:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: [3.13, 3.14]
+        steps:
+            # 1. コードの取得
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            # 2. Python 環境構築
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v6
+              with:
+                  python-version: ${{ matrix.python-version }}
+
+            # 3. uv のセットアップ
+            - name: Setup uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  cache-dependency-glob: "backend/uv.lock"
+
+            # 4. 依存関係のインストール
+            - name: Install backend dependencies
+              run: uv sync --all-packages
+              working-directory: backend
+
+            # 5. テスト用インフラ（DB）の起動
+            - name: Start DB (Docker Compose)
+              # 以前の残骸を掃除してから起動
+              run: |
+                  make docker-down
+                  docker compose up -d db
+
+            # 6. DBの初期化（マイグレーション）
+            - name: Migrate DB
+              run: uv run bash scripts/prestart.sh
+              working-directory: backend
+
+            # 7. テスト実行 & カバレッジ測定
+            - name: Run tests and collect coverage for Python ${{ matrix.python-version }}
+              run: uv run bash scripts/tests-start.sh "Coverage for ${{ github.sha }}"
+              working-directory: backend
+
+            # 8. テスト用インフラの停止
+            - name: Stop DB (Docker Compose)
+              if: always()
+              run: make docker-down
+
+            # 9. カバレッジレポート（HTML）の保存
+            - name: Store coverage files for Python ${{ matrix.python-version }}
+              uses: actions/upload-artifact@v6
+              with:
+                  name: coverage-html-${{ matrix.python-version }}
+                  path: backend/htmlcov
+                  include-hidden-files: true
+
+            # 10. カバレッジの最終判定（90%を下回れば失敗）
+            - name: Check coverage threshold
+              run: uv run coverage report --fail-under=90
+              working-directory: backend
