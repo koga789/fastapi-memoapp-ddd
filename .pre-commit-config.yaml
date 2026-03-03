@@ -1,0 +1,28 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-added-large-files  # 巨大なファイルが誤ってコミットされるのを防止
+      - id: check-toml  # .toml ファイルの構文チェック（pyproject.toml など）
+      - id: check-yaml  # .yaml ファイルの構文チェック
+        args:
+          - --unsafe  # カスタムタグを許容（例: !include, !Ref など）
+      - id: end-of-file-fixer  # ファイルの末尾に改行を追加
+      - id: trailing-whitespace  # 行末の不要な空白を削除
+  - repo: local
+    hooks:
+      - id: local-ruff-check
+        name: ruff check
+        entry: uv run ruff check --force-exclude --fix --exit-non-zero-on-fix
+        require_serial: true  # 複数のファイルがあっても順番に実行（ファイル書き込みの競合回避）
+        language: unsupported  # プロジェクト指定のRuff（Dev dependencies）で実行（Pre-commit側の環境管理を無効化）
+        types: [python]  # Pythonファイルのみ対象
+
+      - id: local-ruff-format
+        name: ruff format
+        entry: uv run ruff format --force-exclude --exit-non-zero-on-format
+        require_serial: true
+        language: unsupported
+        types: [python]

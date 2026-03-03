@@ -1,0 +1,97 @@
+services:
+    db:
+        image: postgres:18
+        container_name: postgres
+        restart: always
+        healthcheck:
+            test:
+                [
+                    "CMD-SHELL",
+                    "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}",
+                ]
+            interval: 10s
+            retries: 5
+            start_period: 30s
+            timeout: 10s
+        env_file:
+            - .env
+        environment:
+            - PGDATA=/var/lib/postgresql/data/pgdata
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+            - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+            - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+        volumes:
+            - app-db-data:/var/lib/postgresql/data/pgdata
+
+    adminer:
+        image: adminer
+        container_name: adminer
+        restart: always
+        networks:
+            - default
+        depends_on:
+            - db
+        environment:
+            - ADMINER_DESIGN=pepa-linha-dark
+
+    prestart:
+        container_name: prestart
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+            target: production
+        networks:
+            - default
+        depends_on:
+            db:
+                condition: service_healthy
+                restart: true
+        command: bash scripts/prestart.sh
+        env_file:
+            - .env
+        environment:
+            - ENVIRONMENT=${ENVIRONMENT}
+            - POSTGRES_SERVER=db
+            - POSTGRES_PORT=${POSTGRES_PORT?Variable not set}
+            - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+            - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+
+    backend:
+        container_name: backend
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+            target: production
+        restart: always
+        networks:
+            - default
+        depends_on:
+            db:
+                condition: service_healthy
+            prestart:
+                condition: service_completed_successfully
+        env_file:
+            - .env
+        environment:
+            - ENVIRONMENT=${ENVIRONMENT}
+            - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+            - POSTGRES_SERVER=db
+            - POSTGRES_PORT=${POSTGRES_PORT?Variable not set}
+            - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+            - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+        healthcheck:
+            test:
+                [
+                    "CMD",
+                    "python",
+                    "-c",
+                    "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')",
+                ]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+
+volumes:
+    app-db-data:

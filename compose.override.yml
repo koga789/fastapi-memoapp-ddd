@@ -1,0 +1,43 @@
+services:
+    db:
+        restart: "no"
+        ports:
+            - "5432:5432"
+
+    adminer:
+        restart: "no"
+        ports:
+            - "8080:8080"
+
+    prestart:
+        build:
+            target: development
+
+    backend:
+        restart: "no"
+        ports:
+            - "8000:8000"
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+            target: development
+        command:
+            - fastapi
+            - run
+            - --reload
+            - "app/main.py"
+        develop:
+            watch:
+                - path: ./backend
+                  action: sync
+                  target: /app/backend
+                  ignore:
+                      - ./backend/.venv
+                      - .venv
+                      - .ruff_cache
+                      - .pytest_cache
+                - path: ./backend/pyproject.toml
+                  action: rebuild
+        volumes:
+            - ./backend/htmlcov:/app/backend/htmlcov
+            - ./backend/app/alembic/versions:/app/backend/app/alembic/versions

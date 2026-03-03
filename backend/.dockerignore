@@ -1,0 +1,13 @@
+.git
+*.md
+
+# python
+__pycache__
+app.egg-info
+*.pyc
+.mypy_cache
+.coverage
+htmlcov
+.venv
+.ruff_cache
+.pytest_cache
