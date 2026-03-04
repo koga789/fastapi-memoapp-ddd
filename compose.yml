@@ -75,7 +75,6 @@ services:
             - .env
         environment:
             - ENVIRONMENT=${ENVIRONMENT}
-            - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
             - POSTGRES_SERVER=db
             - POSTGRES_PORT=${POSTGRES_PORT?Variable not set}
             - POSTGRES_USER=${POSTGRES_USER?Variable not set}

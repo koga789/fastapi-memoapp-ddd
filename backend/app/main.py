@@ -4,7 +4,6 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.infrastructure.structlog import setup_logging
@@ -18,26 +17,17 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     Yields:
         None: アプリケーションの実行期間
     """
-    # アプリケーション起動時に structlog と stdlib logging の設定を初期化
+    # アプリケーション起動時に structlog と logging の設定を初期化
     setup_logging()
-    # yield より前が起動処理、yield より後がシャットダウン処理
+    # yield より前が起動処理, yield より後がシャットダウン処理
     yield
 
 
 app = FastAPI(
-    title=settings.PROJECT_NAME,
-    description="A RESTful API for managing memos using Domain-Driven Design principles.",
-    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    title=settings.project_name,
+    description=settings.project_description,
+    openapi_url=f"{settings.api_v1_str}/openapi.json",
     lifespan=lifespan,
-)
-
-# CORS設定
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:8501"],  # 許可するオリジンを指定
-    allow_credentials=True,  # 認証情報を含むリクエストを許可
-    allow_methods=["*"],  # 許可するHTTPメソッドを指定
-    allow_headers=["*"],  # 許可するHTTPヘッダーを指定
 )
 
 # APIルーターをマウント
