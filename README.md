@@ -115,7 +115,7 @@ docker compose watch
 
 起動後、`http://localhost:8000/docs` でSwagger UIを確認できます。
 
-## バックエンドのテスト
+## ✅ バックエンドのテスト
 
 ```bash
 # ローカル開発中のテスト実行
@@ -125,6 +125,16 @@ make test-backend
 make docker-build
 make docker-up
 docker compose exec backend bash scripts/tests-start.sh -x
+```
+
+## コード品質チェック
+
+```bash
+# MyPy と Ruff による検証のみ実行
+cd backend && bash scripts/lint.sh
+
+# Ruff による自動修正と整形を実行
+cd backend && bash scripts/format.sh
 ```
 
 ## ⚙️ 環境変数
@@ -140,14 +150,6 @@ docker compose exec backend bash scripts/tests-start.sh -x
 | `POSTGRES_PASSWORD` | データベースのパスワード | `password`      |
 | `LOG_LEVEL`         | ログ出力レベル           | `INFO`, `DEBUG` |
 
-## 📋 コマンド一覧
-
-| コマンド             | 内容             |
-| :------------------- | :--------------- |
-| `uv run pytest`      | テストの実行     |
-| `uv run ruff format` | コードの自動整形 |
-| `uv run mypy app`    | 静的型チェック   |
-
 ## 🛠️ トラブルシューティング
 
 - **データベース接続エラー**: データベースが完全に起動する前にアプリケーションが起動しようとすると失敗します。 `docker compose logs db` でデータベースの状態を確認してください。
@@ -157,3 +159,7 @@ docker compose exec backend bash scripts/tests-start.sh -x
 ## 📄 ライセンス
 
 このプロジェクトはMITライセンスのもとで公開されています。詳細は[LICENSE](LICENSE)ファイルを参照してください。
+
+```
+
+```
