@@ -22,7 +22,7 @@ if config.config_file_name is not None:
 
 from app.infrastructure.postgresql.db import Base  # noqa
 from app.infrastructure.postgresql.memo.memo_dto import MemoDTO  # noqa: F401（Base.metadataへの登録用）
-from app.config.config import settings  # noqa
+from app.config import settings  # noqa
 
 target_metadata = Base.metadata
 
@@ -32,7 +32,7 @@ target_metadata = Base.metadata
 # ... etc.
 
 def get_url():
-    return str(settings.SQLALCHEMY_DATABASE_URI)
+    return settings.sqlalchemy_database_uri
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

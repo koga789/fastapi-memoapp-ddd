@@ -36,6 +36,7 @@ packages = ["app"]
 [tool.mypy]
 strict = true
 exclude = ["venv", ".venv", "alembic"]
+explicit_package_bases = true
 
 [tool.ruff]
 target-version = "py314"
